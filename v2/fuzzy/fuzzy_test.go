@@ -227,7 +227,11 @@ func TestRankMatchNormalizedFold(t *testing.T) {
 }
 
 func TestRankMatchNormalizedFoldConcurrent(t *testing.T) {
-	target := strings.Split("Lorem ipsum dolor sit amet, consectetur adipiscing elit", " ")
+	tmp := strings.Split("Lorem ipsum dolor sit amet, consectetur adipiscing elit", " ")
+	target := make([]fmt.Stringer, len(tmp))
+	for i, el := range tmp {
+		target[i] = wrapper{el}
+	}
 	source := "ips"
 	procs := 10
 	iter := 10
@@ -249,7 +253,7 @@ func TestRankMatchNormalizedFoldConcurrent(t *testing.T) {
 }
 
 func TestRankFind(t *testing.T) {
-	target := []string{"cartwheel", "foobar", "wheel", "baz"}
+	target := []fmt.Stringer{wrapper{"cartwheel"}, wrapper{"foobar"}, wrapper{"wheel"}, wrapper{"baz"}}
 	wanted := []Rank{
 		{"whl", "cartwheel", 6, 0},
 		{"whl", "wheel", 2, 2},
@@ -269,7 +273,7 @@ func TestRankFind(t *testing.T) {
 }
 
 func TestRankFindNormalized(t *testing.T) {
-	target := []string{"limón", "limon", "lemon", "LIMON"}
+	target := []fmt.Stringer{wrapper{"limón"}, wrapper{"limon"}, wrapper{"lemon"}, wrapper{"LIMON"}}
 	wanted := []Rank{
 		{"limó", "limón", 1, 0},
 		{"limó", "limon", 2, 1},
@@ -289,7 +293,7 @@ func TestRankFindNormalized(t *testing.T) {
 }
 
 func TestRankFindNormalizedFold(t *testing.T) {
-	target := []string{"limón", "limon", "lemon", "LIMON"}
+	target := []fmt.Stringer{wrapper{"limón"}, wrapper{"limon"}, wrapper{"lemon"}, wrapper{"LIMON"}}
 	wanted := []Rank{
 		{"limó", "limón", 1, 0},
 		{"limó", "limon", 2, 1},
@@ -309,7 +313,8 @@ func TestRankFindNormalizedFold(t *testing.T) {
 	}
 }
 
-func TestSortingRanks(t *testing.T) {
+func
+TestSortingRanks(t *testing.T) {
 	rs := Ranks{{"a", "b", 1, 0}, {"a", "cc", 2, 1}, {"a", "a", 0, 2}}
 	wanted := Ranks{rs[2], rs[0], rs[1]}
 
@@ -322,75 +327,86 @@ func TestSortingRanks(t *testing.T) {
 	}
 }
 
-func BenchmarkMatch(b *testing.B) {
+func
+BenchmarkMatch(b *testing.B) {
 	ft := fuzzyTests[2]
 	for i := 0; i < b.N; i++ {
 		Match(ft.source, ft.target)
 	}
 }
 
-func BenchmarkMatchBigLate(b *testing.B) {
+func
+BenchmarkMatchBigLate(b *testing.B) {
 	ft := fuzzyTests[0]
 	for i := 0; i < b.N; i++ {
 		Match(ft.source, ft.target)
 	}
 }
 
-func BenchmarkMatchBigEarly(b *testing.B) {
+func
+BenchmarkMatchBigEarly(b *testing.B) {
 	ft := fuzzyTests[1]
 	for i := 0; i < b.N; i++ {
 		Match(ft.source, ft.target)
 	}
 }
 
-func BenchmarkMatchFold(b *testing.B) {
+func
+BenchmarkMatchFold(b *testing.B) {
 	ft := fuzzyTests[2]
 	for i := 0; i < b.N; i++ {
 		MatchFold(ft.source, ft.target)
 	}
 }
 
-func BenchmarkMatchFoldBigLate(b *testing.B) {
+func
+BenchmarkMatchFoldBigLate(b *testing.B) {
 	ft := fuzzyTests[0]
 	for i := 0; i < b.N; i++ {
 		MatchFold(ft.source, ft.target)
 	}
 }
 
-func BenchmarkMatchFoldBigEarly(b *testing.B) {
+func
+BenchmarkMatchFoldBigEarly(b *testing.B) {
 	ft := fuzzyTests[1]
 	for i := 0; i < b.N; i++ {
 		MatchFold(ft.source, ft.target)
 	}
 }
 
-func BenchmarkRankMatch(b *testing.B) {
+func
+BenchmarkRankMatch(b *testing.B) {
 	ft := fuzzyTests[2]
 	for i := 0; i < b.N; i++ {
 		RankMatch(ft.source, wrapper{ft.target})
 	}
 }
 
-func BenchmarkRankMatchBigLate(b *testing.B) {
+func
+BenchmarkRankMatchBigLate(b *testing.B) {
 	ft := fuzzyTests[0]
 	for i := 0; i < b.N; i++ {
 		RankMatch(ft.source, wrapper{ft.target})
 	}
 }
 
-func BenchmarkRankMatchBigEarly(b *testing.B) {
+func
+BenchmarkRankMatchBigEarly(b *testing.B) {
 	ft := fuzzyTests[1]
 	for i := 0; i < b.N; i++ {
 		RankMatch(ft.source, wrapper{ft.target})
 	}
 }
 
-func ExampleMatch() {
+func
+ExampleMatch() {
 	fmt.Print(Match("twl", "cartwheel"))
 	// Output: true
 }
 
-func ExampleFind() {
+func
+ExampleFind() {
 	fmt.Print(Find("whl", []fmt.Stringer{
 		wrapper{"cartwheel"}, wrapper{"foobar"},
 		wrapper{"wheel"}, wrapper{"baz"},
@@ -398,12 +414,14 @@ func ExampleFind() {
 	// Output: [cartwheel wheel]
 }
 
-func ExampleRankMatch() {
+func
+ExampleRankMatch() {
 	fmt.Print(RankMatch("twl", wrapper{"cartwheel"}))
 	// Output: 6
 }
 
-func ExampleRankFind() {
-	fmt.Printf("%+v", RankFind("whl", []string{"cartwheel", "foobar", "wheel", "baz"}))
+func
+ExampleRankFind() {
+	fmt.Printf("%+v", RankFind("whl", []fmt.Stringer{wrapper{"cartwheel"}, wrapper{"foobar"}, wrapper{"wheel"}, wrapper{"baz"}}))
 	// Output: [{Source:whl Target:cartwheel Distance:6 OriginalIndex:0} {Source:whl Target:wheel Distance:2 OriginalIndex:2}]
 }

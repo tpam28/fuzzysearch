@@ -175,32 +175,32 @@ Outer:
 
 // RankFind is similar to Find, except it will also rank all matches using
 // Levenshtein distance.
-func RankFind(source string, targets []string) Ranks {
+func RankFind(source string, targets []fmt.Stringer) Ranks {
 	return rankFind(source, targets, noopTransformer())
 }
 
 // RankFindFold is a case-insensitive version of RankFind.
-func RankFindFold(source string, targets []string) Ranks {
+func RankFindFold(source string, targets []fmt.Stringer) Ranks {
 	return rankFind(source, targets, foldTransformer())
 }
 
 // RankFindNormalized is a unicode-normalized version of RankFind.
-func RankFindNormalized(source string, targets []string) Ranks {
+func RankFindNormalized(source string, targets []fmt.Stringer) Ranks {
 	return rankFind(source, targets, normalizeTransformer())
 }
 
 // RankFindNormalizedFold is a unicode-normalized and case-insensitive version of RankFind.
-func RankFindNormalizedFold(source string, targets []string) Ranks {
+func RankFindNormalizedFold(source string, targets []fmt.Stringer) Ranks {
 	return rankFind(source, targets, normalizedFoldTransformer())
 }
 
-func rankFind(source string, targets []string, transformer transform.Transformer) Ranks {
+func rankFind(source string, targets []fmt.Stringer, transformer transform.Transformer) Ranks {
 	var r Ranks
 
 	for index, target := range targets {
-		if match(source, target, transformer) {
-			distance := LevenshteinDistance(source, target)
-			r = append(r, Rank{source, target, distance, index})
+		if match(source, target.String(), transformer) {
+			distance := LevenshteinDistance(source, target.String())
+			r = append(r, Rank{source, target.String(), distance, index})
 		}
 	}
 	return r
