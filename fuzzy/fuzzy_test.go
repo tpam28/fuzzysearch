@@ -7,6 +7,14 @@ import (
 	"testing"
 )
 
+type wrapper struct {
+	string
+}
+
+func (w wrapper) String() string {
+	return w.string
+}
+
 const deBelloGallico = `All Gaul is divided into three parts, one of which the Belgae inhabit,
 the Aquitani another, those who in their own language are called Celts, in our Gauls, the third.
 All these differ from each other in language, customs and laws. The river Garonne separates the
@@ -81,7 +89,7 @@ func TestFuzzyMatchNormalized(t *testing.T) {
 	}
 
 	for _, val := range normalizedTests {
-		match := MatchNormalized(val.source, val.target)
+		match := MatchNormalized(val.source, wrapper{val.target})
 		if match != val.wanted {
 			t.Errorf("%s in %s expected match to be %t, got %t",
 				val.source, val.target, val.wanted, match)
@@ -102,7 +110,7 @@ func TestFuzzyMatchNormalizedFold(t *testing.T) {
 	}
 
 	for _, val := range normalizedTests {
-		match := MatchNormalizedFold(val.source, val.target)
+		match := MatchNormalizedFold(val.source, wrapper{val.target})
 		if match != val.wanted {
 			t.Errorf("%s in %s expected match to be %t, got %t",
 				val.source, val.target, val.wanted, match)
@@ -111,7 +119,7 @@ func TestFuzzyMatchNormalizedFold(t *testing.T) {
 }
 
 func TestFuzzyFind(t *testing.T) {
-	target := []string{"cartwheel", "foobar", "wheel", "baz", "cartwhéél"}
+	target := []fmt.Stringer{wrapper{"cartwheel"}, wrapper{"foobar"}, wrapper{"wheel"}, wrapper{"baz"}, wrapper{"cartwhéél"}}
 	wanted := []string{"cartwheel", "wheel"}
 
 	matches := Find("whel", target)
@@ -121,14 +129,17 @@ func TestFuzzyFind(t *testing.T) {
 	}
 
 	for i := range wanted {
-		if wanted[i] != matches[i] {
+		if wanted[i] != matches[i].String() {
 			t.Errorf("expected %s, got %s", wanted, matches)
 		}
 	}
 }
 
 func TestFuzzyFindNormalized(t *testing.T) {
-	target := []string{"cartwheel", "foobar", "wheel", "baz", "cartwhéél", "WHEEL"}
+	target := []fmt.Stringer{
+		wrapper{"cartwheel"}, wrapper{"foobar"}, wrapper{"wheel"},
+		wrapper{"baz"}, wrapper{"cartwhéél"}, wrapper{"WHEEL"},
+	}
 	wanted := []string{"cartwheel", "wheel", "cartwhéél"}
 
 	matches := FindNormalized("whél", target)
@@ -138,14 +149,17 @@ func TestFuzzyFindNormalized(t *testing.T) {
 	}
 
 	for i := range wanted {
-		if wanted[i] != matches[i] {
+		if wanted[i] != matches[i].String() {
 			t.Errorf("expected %s, got %s", wanted, matches)
 		}
 	}
 }
 
 func TestFuzzyFindNormalizedFold(t *testing.T) {
-	target := []string{"cartwheel", "foobar", "wheel", "baz", "cartwhéél", "WHEEL"}
+	target := []fmt.Stringer{
+		wrapper{"cartwheel"}, wrapper{"foobar"}, wrapper{"wheel"},
+		wrapper{"baz"}, wrapper{"cartwhéél"}, wrapper{"WHEEL"},
+	}
 	wanted := []string{"cartwheel", "wheel", "cartwhéél", "WHEEL"}
 
 	matches := FindNormalizedFold("whél", target)
@@ -155,7 +169,7 @@ func TestFuzzyFindNormalizedFold(t *testing.T) {
 	}
 
 	for i := range wanted {
-		if wanted[i] != matches[i] {
+		if wanted[i] != matches[i].String() {
 			t.Errorf("expected %s, got %s", wanted, matches)
 		}
 	}
@@ -163,7 +177,7 @@ func TestFuzzyFindNormalizedFold(t *testing.T) {
 
 func TestRankMatch(t *testing.T) {
 	for _, val := range fuzzyTests {
-		rank := RankMatch(val.source, val.target)
+		rank := RankMatch(val.source, wrapper{val.target})
 		if rank != val.rank {
 			t.Errorf("expected ranking %d, got %d for %s in %s",
 				val.rank, rank, val.source, val.target)
@@ -183,7 +197,7 @@ func TestRankMatchNormalized(t *testing.T) {
 	}
 
 	for _, val := range fuzzyTests {
-		rank := RankMatchNormalized(val.source, val.target)
+		rank := RankMatchNormalized(val.source, wrapper{val.target})
 		if rank != val.rank {
 			t.Errorf("expected ranking %d, got %d for %s in %s",
 				val.rank, rank, val.source, val.target)
@@ -204,7 +218,7 @@ func TestRankMatchNormalizedFold(t *testing.T) {
 	}
 
 	for _, val := range fuzzyTests {
-		rank := RankMatchNormalizedFold(val.source, val.target)
+		rank := RankMatchNormalizedFold(val.source, wrapper{val.target})
 		if rank != val.rank {
 			t.Errorf("expected ranking %d, got %d for %s in %s",
 				val.rank, rank, val.source, val.target)
@@ -229,7 +243,7 @@ func TestRankMatchNormalizedFoldConcurrent(t *testing.T) {
 	}
 	cnt := 0;
 	for i := 0; i < procs; i++ {
-		<- done
+		<-done
 		cnt++
 	}
 }
@@ -353,21 +367,21 @@ func BenchmarkMatchFoldBigEarly(b *testing.B) {
 func BenchmarkRankMatch(b *testing.B) {
 	ft := fuzzyTests[2]
 	for i := 0; i < b.N; i++ {
-		RankMatch(ft.source, ft.target)
+		RankMatch(ft.source, wrapper{ft.target})
 	}
 }
 
 func BenchmarkRankMatchBigLate(b *testing.B) {
 	ft := fuzzyTests[0]
 	for i := 0; i < b.N; i++ {
-		RankMatch(ft.source, ft.target)
+		RankMatch(ft.source, wrapper{ft.target})
 	}
 }
 
 func BenchmarkRankMatchBigEarly(b *testing.B) {
 	ft := fuzzyTests[1]
 	for i := 0; i < b.N; i++ {
-		RankMatch(ft.source, ft.target)
+		RankMatch(ft.source, wrapper{ft.target})
 	}
 }
 
@@ -377,12 +391,15 @@ func ExampleMatch() {
 }
 
 func ExampleFind() {
-	fmt.Print(Find("whl", []string{"cartwheel", "foobar", "wheel", "baz"}))
+	fmt.Print(Find("whl", []fmt.Stringer{
+		wrapper{"cartwheel"}, wrapper{"foobar"},
+		wrapper{"wheel"}, wrapper{"baz"},
+	}))
 	// Output: [cartwheel wheel]
 }
 
 func ExampleRankMatch() {
-	fmt.Print(RankMatch("twl", "cartwheel"))
+	fmt.Print(RankMatch("twl", wrapper{"cartwheel"}))
 	// Output: 6
 }
 

@@ -4,6 +4,7 @@ package fuzzy
 
 import (
 	"bytes"
+	"fmt"
 	"unicode"
 	"unicode/utf8"
 
@@ -28,7 +29,6 @@ func normalizedFoldTransformer() transform.Transformer {
 	return transform.Chain(normalizeTransformer(), foldTransformer())
 }
 
-
 // Match returns true if source matches target using a fuzzy-searching
 // algorithm. Note that it doesn't implement Levenshtein distance (see
 // RankMatch instead), but rather a simplified version where there's no
@@ -44,13 +44,13 @@ func MatchFold(source, target string) bool {
 }
 
 // MatchNormalized is a unicode-normalized version of Match.
-func MatchNormalized(source, target string) bool {
-	return match(source, target, normalizeTransformer())
+func MatchNormalized(source string, target fmt.Stringer) bool {
+	return match(source, target.String(), normalizeTransformer())
 }
 
 // MatchNormalizedFold is a unicode-normalized and case-insensitive version of Match.
-func MatchNormalizedFold(source, target string) bool {
-	return match(source, target, normalizedFoldTransformer())
+func MatchNormalizedFold(source string, target fmt.Stringer) bool {
+	return match(source, target.String(), normalizedFoldTransformer())
 }
 
 func match(source, target string, transformer transform.Transformer) bool {
@@ -82,30 +82,30 @@ Outer:
 }
 
 // Find will return a list of strings in targets that fuzzy matches source.
-func Find(source string, targets []string) []string {
+func Find(source string, targets []fmt.Stringer) []fmt.Stringer {
 	return find(source, targets, noopTransformer())
 }
 
 // FindFold is a case-insensitive version of Find.
-func FindFold(source string, targets []string) []string {
+func FindFold(source string, targets []fmt.Stringer) []fmt.Stringer {
 	return find(source, targets, foldTransformer())
 }
 
 // FindNormalized is a unicode-normalized version of Find.
-func FindNormalized(source string, targets []string) []string {
+func FindNormalized(source string, targets []fmt.Stringer) []fmt.Stringer {
 	return find(source, targets, normalizeTransformer())
 }
 
 // FindNormalizedFold is a unicode-normalized and case-insensitive version of Find.
-func FindNormalizedFold(source string, targets []string) []string {
+func FindNormalizedFold(source string, targets []fmt.Stringer) []fmt.Stringer {
 	return find(source, targets, normalizedFoldTransformer())
 }
 
-func find(source string, targets []string, transformer transform.Transformer) []string {
-	var matches []string
+func find(source string, targets []fmt.Stringer, transformer transform.Transformer) []fmt.Stringer {
+	var matches []fmt.Stringer
 
 	for _, target := range targets {
-		if match(source, target, transformer) {
+		if match(source, target.String(), transformer) {
 			matches = append(matches, target)
 		}
 	}
@@ -119,23 +119,23 @@ func find(source string, targets []string, transformer transform.Transformer) []
 // Given the requirements of match, RankMatch only needs to perform a subset of
 // the Levenshtein calculation, only deletions need be considered, required
 // additions and substitutions would fail the match test.
-func RankMatch(source, target string) int {
-	return rank(source, target, noopTransformer())
+func RankMatch(source string, target fmt.Stringer) int {
+	return rank(source, target.String(), noopTransformer())
 }
 
 // RankMatchFold is a case-insensitive version of RankMatch.
-func RankMatchFold(source, target string) int {
-	return rank(source, target, foldTransformer())
+func RankMatchFold(source string, target fmt.Stringer) int {
+	return rank(source, target.String(), foldTransformer())
 }
 
 // RankMatchNormalized is a unicode-normalized version of RankMatch.
-func RankMatchNormalized(source, target string) int {
-	return rank(source, target, normalizeTransformer())
+func RankMatchNormalized(source string, target fmt.Stringer) int {
+	return rank(source, target.String(), normalizeTransformer())
 }
 
 // RankMatchNormalizedFold is a unicode-normalized and case-insensitive version of RankMatch.
-func RankMatchNormalizedFold(source, target string) int {
-	return rank(source, target, normalizedFoldTransformer())
+func RankMatchNormalizedFold(source string, target fmt.Stringer) int {
+	return rank(source, target.String(), normalizedFoldTransformer())
 }
 
 func rank(source, target string, transformer transform.Transformer) int {
